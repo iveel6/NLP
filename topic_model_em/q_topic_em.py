@@ -61,7 +61,7 @@ def e_step(fileData, theta_t_z, theta_z_w):
   count_t_z = np.zeros([NUM_DOCS, NUM_TOPICS])
   count_w_z = np.zeros([vocabSize, NUM_TOPICS])
 
-  # normalizer
+  #normalizer
   overSum_t_w = theta_t_z * theta_z_w
 
   ### t is iterator over the documents {1, 2,..., n}
@@ -89,12 +89,13 @@ def e_step(fileData, theta_t_z, theta_z_w):
           '''
           #done post for w, t
           posterior_w_z[w][z] = 1.0* theta_t_z[t][z]*theta_z_w[z][w]/overSum_t_w[t][w]
-          #posterior is done for w, t, z
-          for z in range(NUM_TOPICS):
-            '''TODO: Update soft counts count_t_z[t][z] '''
-            count_t_z[t][z] += posterior_w_z[w][z]
-            '''TODO: Update soft counts count_w_z[w][z] '''
-            count_w_z[w][z] += posterior_w_z[w][z] 
+
+      #posterior is done for w, t, z
+      for z in range(NUM_TOPICS):
+        '''TODO: Update soft counts count_t_z[t][z] '''
+        count_t_z[t][z] += posterior_w_z[w][z]
+        '''TODO: Update soft counts count_w_z[w][z] '''
+        count_w_z[w][z] += posterior_w_z[w][z] 
   return count_t_z, count_w_z
 
 # --------------------------------------------------
@@ -110,8 +111,10 @@ def m_step(count_t_z, count_w_z):
     for z in range(NUM_TOPICS):
       theta_t_z[t][z] = count_t_z[t][z]
       N_t += count_t_z[t][z]
-      #normalize row        
-      theta_t_z[t,:] /= N_t
+
+    #normalize row        
+    theta_t_z[t,:] /= N_t
+
   '''TODO: Get the max Likelihood estimate of theta_z_w[t][z]
   Make sure that the theta_z_w[z] is a valid probability 
   distribution over the words.'''
@@ -120,8 +123,9 @@ def m_step(count_t_z, count_w_z):
     for w in range(vocabSize):
       theta_z_w[z][w] = count_w_z[w][z]
       sumOver_z += count_w_z[w][z]
-  #normalize
-  theta_z_w[z][w] /= sumOver_z
+      
+    #normalize
+    theta_z_w[z][w] /= sumOver_z
   
   return theta_t_z, theta_z_w
 
