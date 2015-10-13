@@ -81,16 +81,18 @@ def e_step(fileData, theta_t_z, theta_z_w):
 		### w is a word (in the form of a number corresponding to its index)
 		### in the document
 		for w in fileData[t]:
-
 			#posterior probability posterior_w_z[w][z]
 			if w not in posterior_w_z:
-				posterior_w_z[w][z] = 1.0* theta_t_z[t][z]*theta_z_w[z][w]/overSum_t_w[t][w]		
+				for z in range(NUM_TOPICS):
+					posterior_w_z[w][z] = 1.0* theta_t_z[t][z]*theta_z_w[z][w]/overSum_t_w[t][w]
 
+		for w in fileData[t]:
 			for z in range(NUM_TOPICS):
 				count_t_z[t][z] += posterior_w_z[w][z]
 				count_w_z[w][z] += posterior_w_z[w][z] 
 	return count_t_z, count_w_z
 
+#test for e_step
 
 # --------------------------------------------------
 def m_step(count_t_z, count_w_z):
