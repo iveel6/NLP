@@ -62,7 +62,7 @@ def e_step(fileData, theta_t_z, theta_z_w):
   count_w_z = np.zeros([vocabSize, NUM_TOPICS])
 
   #normalizer
-  overSum_t_w = theta_t_z * theta_z_w
+  overSum_t_w = np.dot(theta_t_z, theta_z_w)
 
   ### t is iterator over the documents {1, 2,..., n}
   for t in range(NUM_DOCS):
@@ -123,7 +123,7 @@ def m_step(count_t_z, count_w_z):
     for w in range(vocabSize):
       theta_z_w[z][w] = count_w_z[w][z]
       sumOver_z += count_w_z[w][z]
-      
+
     #normalize
     theta_z_w[z][w] /= sumOver_z
   
