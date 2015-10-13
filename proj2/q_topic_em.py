@@ -61,6 +61,9 @@ def e_step(fileData, theta_t_z, theta_z_w):
 	count_t_z = np.zeros([NUM_DOCS, NUM_TOPICS])
 	count_w_z = np.zeros([vocabSize, NUM_TOPICS])
 
+	#normalizer
+	overSum_t_w = np.dot(theta_t_z, theta_z_w)
+
 	### t is iterator over the documents {1, 2,..., n}
 	for t in range(NUM_DOCS):
 
@@ -78,35 +81,37 @@ def e_step(fileData, theta_t_z, theta_z_w):
 		### w is a word (in the form of a number corresponding to its index)
 		### in the document
 		for w in fileData[t]:
-			
+
+			#posterior probability posterior_w_z[w][z]
 			if w not in posterior_w_z:
-				if w not in posterior_w_z:
-				'''TODO: calculate the posterior probability posterior_w_z[w][z]
-					Make sure that the posterior_w_z[w] is a valid probability 
-					distribution over the topics z.
-				'''
-				
+				posterior_w_z[w][z] = 1.0* theta_t_z[t][z]*theta_z_w[z][w]/overSum_t_w[t][w]		
 
 			for z in range(NUM_TOPICS):
-				'''TODO: Update soft counts count_t_z[t][z] '''
-
-				'''TODO: Update soft counts count_w_z[w][z] '''
-
+				count_t_z[t][z] += posterior_w_z[w][z]
+				count_w_z[w][z] += posterior_w_z[w][z] 
 	return count_t_z, count_w_z
 
 
 # --------------------------------------------------
 def m_step(count_t_z, count_w_z):
-	'''TODO: Get the max Likelihood estimate of theta_t_z[t][z]
-		 Make sure that the theta_t_z[t] is a valid probability 
-					distribution over the topics z.'''
-	
+	theta_t_z = np.random.rand(NUM_DOCS, NUM_TOPICS)
+	theta_z_w = np.random.rand(NUM_TOPICS, vocabSize)
 
-	'''TODO: Get the max Likelihood estimate of theta_z_w[t][z]
-	   Make sure that the theta_z_w[z] is a valid probability 
-					distribution over the words.'''
-	
+	for t in range(NUM_DOCS):
+		N_t = 0.0
+		for z in range(NUM_TOPICS):
+			theta_t_z[t][z] = count_t_z[t][z]
+			N_t += count_t_z[t][z]
+		#normalize row        
+		theta_t_z[t,:] /= N_t
 
+	for z in range(NUM_TOPICS):
+		sumOver_w = 0.0
+		for w in range(vocabSize):
+			theta_z_w[z][w] = count_w_z[w][z]
+			sumOver_z += count_w_z[w][z]
+		#normalize
+		theta_z_w[z,:] /= sumOver_w
 	return theta_t_z, theta_z_w
 
 
