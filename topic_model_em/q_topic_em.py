@@ -26,156 +26,148 @@ stopWords = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'yo', 
 
 ### Data is expected to be tokenized into words (separated by whitespace)'''
 def readFile(filename):
-	global vocabSize, vocabulary
-	words = file(filename).read().lower().split()
-	words = [w for w in words if w.isalpha() and w not in stopWords] #remove non-alpha and stopwords
+  global vocabSize, vocabulary
+  words = file(filename).read().lower().split()
+  words = [w for w in words if w.isalpha() and w not in stopWords] #remove non-alpha and stopwords
 
-	tokens = []
+  tokens = []
 
-	### Create a mapping from words to indices. The EM algorithm will use these indices
-	### in its data structures. 
-	for w in words:
-		if w not in word2Index:			
-			word2Index[w] = vocabSize
-			vocabulary.append(w)
-			vocabSize += 1
-		tokens.append(word2Index[w])
+  ### Create a mapping from words to indices. The EM algorithm will use these indices
+  ### in its data structures. 
+  for w in words:
+    if w not in word2Index:     
+      word2Index[w] = vocabSize
+      vocabulary.append(w)
+      vocabSize += 1
+      tokens.append(word2Index[w])
 
-	return tokens 
+      return tokens 
 
 ### Reads an entire directory of files
 def readDirectory(dirname):
-	global NUM_DOCS
-	fileData = [] # list of file data
+  global NUM_DOCS
+  fileData = [] # list of file data
 
-	fileList = [ f for f in listdir(dirname) if isfile(join(dirname,f)) ]
+  fileList = [ f for f in listdir(dirname) if isfile(join(dirname,f)) ]
 
-	for f in fileList:
-		fileData.append(readFile(join(dirname,f)))
-		NUM_DOCS += 1
+  for f in fileList:
+    fileData.append(readFile(join(dirname,f)))
+    NUM_DOCS += 1
 
-	return fileData
+    return fileData
 
 # --------------------------------------------------
 def e_step(fileData, theta_t_z, theta_z_w):
-	count_t_z = np.zeros([NUM_DOCS, NUM_TOPICS])
-	count_w_z = np.zeros([vocabSize, NUM_TOPICS])
+  count_t_z = np.zeros([NUM_DOCS, NUM_TOPICS])
+  count_w_z = np.zeros([vocabSize, NUM_TOPICS])
 
-	# normalizer
-	overSum_t_w = theta_t_z * theta_z_w
+  # normalizer
+  overSum_t_w = theta_t_z * theta_z_w
 
-	### t is iterator over the documents {1, 2,..., n}
-	for t in range(NUM_DOCS):
+  ### t is iterator over the documents {1, 2,..., n}
+  for t in range(NUM_DOCS):
 
-		''' In order to improve efficiency, we will go through each document 
-				only once and calculate the posterior distributions as and when 
-				necessary. So, the variable 'posterior_w_z[w][z]' below is implicitly
-				representing P(z | w, t) for the current document t.
+    ''' In order to improve efficiency, we will go through each document 
+    only once and calculate the posterior distributions as and when 
+    necessary. So, the variable 'posterior_w_z[w][z]' below is implicitly
+    representing P(z | w, t) for the current document t.
 
-				The use of collections.defaultdict here is to calculate the 
-				posteriors lazily, i.e. only for words that appear in 
-				the current document.
-		'''
-		posterior_w_z = collections.defaultdict(lambda:np.zeros(NUM_TOPICS))
+    The use of collections.defaultdict here is to calculate the 
+    posteriors lazily, i.e. only for words that appear in 
+    the current document.
+    '''
+    posterior_w_z = collections.defaultdict(lambda:np.zeros(NUM_TOPICS))
 
-		### w is a word (in the form of a number corresponding to its index)
-		### in the document
-		for w in fileData[t]:
-			if w not in posterior_w_z:
-                                for z in range(NUM_TOPICS):
-                                        '''TODO: calculate the posterior probability posterior_w_z[w][z]
-                                                Make sure that the posterior_w_z[w] is a valid probability 
-                                                distribution over the topics z.
-                                        '''
-                                        #done post for w, t
-                                        posterior_w_z[w][z] = 1.0* theta_t_z[t][z]*theta_z_w[z][w]/overSum_t_w[t][w]
-                        #posterior is done for w, t, z
-			for z in range(NUM_TOPICS):
-				'''TODO: Update soft counts count_t_z[t][z] '''
-	
-				count_t_z[t][z] += posterior_w_z[w][z]
-
-				'''TODO: Update soft counts count_w_z[w][z] '''
-			
-				count_w_z[w][z] += posterior_w_z[w][z] 
-
-
-	return count_t_z, count_w_z
+    ### w is a word (in the form of a number corresponding to its index)
+    ### in the document
+    for w in fileData[t]:
+      if w not in posterior_w_z:
+        for z in range(NUM_TOPICS):
+          '''TODO: calculate the posterior probability posterior_w_z[w][z]
+          Make sure that the posterior_w_z[w] is a valid probability 
+          distribution over the topics z.
+          '''
+          #done post for w, t
+          posterior_w_z[w][z] = 1.0* theta_t_z[t][z]*theta_z_w[z][w]/overSum_t_w[t][w]
+          #posterior is done for w, t, z
+          for z in range(NUM_TOPICS):
+            '''TODO: Update soft counts count_t_z[t][z] '''
+            count_t_z[t][z] += posterior_w_z[w][z]
+            '''TODO: Update soft counts count_w_z[w][z] '''
+            count_w_z[w][z] += posterior_w_z[w][z] 
+  return count_t_z, count_w_z
 
 # --------------------------------------------------
 def m_step(count_t_z, count_w_z):
-        
-        theta_t_z = np.random.rand(NUM_DOCS, NUM_TOPICS)
-	theta_z_w = np.random.rand(NUM_TOPICS, vocabSize)
-	
-	'''TODO: Get the max Likelihood estimate of theta_t_z[t][z]
-		 Make sure that the theta_t_z[t] is a valid probability 
-					distribution over the topics z.'''
-	for t in range(NUM_DOCS):
-                N_t = 0.0
-                for z in range(NUM_TOPICS):
-                        theta_t_z[t][z] = count_t_z[t][z]
-                        N_t += count_t_z[t][z]
-                #normalize row        
-                theta_t_z[t,:] /= N_t
-                
-
-	'''TODO: Get the max Likelihood estimate of theta_z_w[t][z]
-	   Make sure that the theta_z_w[z] is a valid probability 
-					distribution over the words.'''
-	for z in range(NUM_TOPICS):
-                sumOver_z = 0.0
-                for w in range(vocabSize):
-                        theta_z_w[z][w] = count_w_z[w][z]
-                        sumOver_z += count_w_z[w][z]
-                #normalize
-                theta_z_w[z][w] /= sumOver_z
-                
-	return theta_t_z, theta_z_w
+  theta_t_z = np.random.rand(NUM_DOCS, NUM_TOPICS)
+  theta_z_w = np.random.rand(NUM_TOPICS, vocabSize)
+  
+  '''TODO: Get the max Likelihood estimate of theta_t_z[t][z]
+  Make sure that the theta_t_z[t] is a valid probability 
+  distribution over the topics z.'''
+  for t in range(NUM_DOCS):
+    N_t = 0.0
+    for z in range(NUM_TOPICS):
+      theta_t_z[t][z] = count_t_z[t][z]
+      N_t += count_t_z[t][z]
+      #normalize row        
+      theta_t_z[t,:] /= N_t
+  '''TODO: Get the max Likelihood estimate of theta_z_w[t][z]
+  Make sure that the theta_z_w[z] is a valid probability 
+  distribution over the words.'''
+  for z in range(NUM_TOPICS):
+    sumOver_z = 0.0
+    for w in range(vocabSize):
+      theta_z_w[z][w] = count_w_z[w][z]
+      sumOver_z += count_w_z[w][z]
+  #normalize
+  theta_z_w[z][w] /= sumOver_z
+  
+  return theta_t_z, theta_z_w
 
 
 # --------------------------------------------------
 def EM(fileData, num_iter):
 
-	#Initialize parameters with random numbers
-	theta_t_z = np.random.rand(NUM_DOCS, NUM_TOPICS)
-	theta_z_w = np.random.rand(NUM_TOPICS, vocabSize)
+  #Initialize parameters with random numbers
+  theta_t_z = np.random.rand(NUM_DOCS, NUM_TOPICS)
+  theta_z_w = np.random.rand(NUM_TOPICS, vocabSize)
 
-	#normalize
-	for t in range(NUM_DOCS):
-		theta_t_z[t] /= np.sum(theta_t_z[t])
-	for z in range(NUM_TOPICS):
-		theta_z_w[z] /= np.sum(theta_z_w[z])
+  #normalize
+  for t in range(NUM_DOCS):
+    theta_t_z[t] /= np.sum(theta_t_z[t])
+    for z in range(NUM_TOPICS):
+      theta_z_w[z] /= np.sum(theta_z_w[z])
 
 
-	for i in range(num_iter):
-		print "Iteration", i+1, '...'
-		count_t_z, count_w_z = e_step(fileData, theta_t_z, theta_z_w)
-		theta_t_z, theta_z_w = m_step(count_t_z, count_w_z)
+      for i in range(num_iter):
+        print "Iteration", i+1, '...'
+        count_t_z, count_w_z = e_step(fileData, theta_t_z, theta_z_w)
+        theta_t_z, theta_z_w = m_step(count_t_z, count_w_z)
 
-	return theta_t_z, theta_z_w
+        return theta_t_z, theta_z_w
 
 
 # --------------------------------------------------
 if __name__ == '__main__':
-	input_directory = sys.argv[1]
-	fileData = readDirectory(input_directory)
-	num_iter = int(sys.argv[3])
+  input_directory = sys.argv[1]
+  fileData = readDirectory(input_directory)
+  num_iter = int(sys.argv[3])
 
-	print "Vocabulary:", vocabSize, "words."
-	print "Running EM with", NUM_TOPICS, "topics."
-	theta_t_z, theta_z_w = EM(fileData, num_iter)
+  print "Vocabulary:", vocabSize, "words."
+  print "Running EM with", NUM_TOPICS, "topics."
+  theta_t_z, theta_z_w = EM(fileData, num_iter)
 
-	#Print out topic samples
-	for z in range(NUM_TOPICS):
-		
-		wordProb = [(vocabulary[w], theta_z_w[z][w]) for w in range(vocabSize)]
-		wordProb = sorted(wordProb, key = itemgetter(1), reverse=True)
+  #Print out topic samples
+  for z in range(NUM_TOPICS):
 
-		print "Topic", z+1
-		for j in range(20):
-			print wordProb[j][0], '(%.4f),' % wordProb[j][1], 
-		print '\n'
+    wordProb = [(vocabulary[w], theta_z_w[z][w]) for w in range(vocabSize)]
+    wordProb = sorted(wordProb, key = itemgetter(1), reverse=True)
+
+    print "Topic", z+1
+    for j in range(20):
+      print wordProb[j][0], '(%.4f),' % wordProb[j][1], 
+      print '\n'
 
 
 
