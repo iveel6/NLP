@@ -104,8 +104,9 @@ def m_step(count_t_z, count_w_z):
 		for z in range(NUM_TOPICS):
 			theta_t_z[t][z] = count_t_z[t][z]
 			N_t += count_t_z[t][z]
-		#normalize row        
-		theta_t_z[t,:] /= N_t
+		if (N_t != 0):
+			#normalize row        
+			theta_t_z[t,:] /= N_t
 
 	for z in range(NUM_TOPICS):
 		sumOver_w = 0.0
