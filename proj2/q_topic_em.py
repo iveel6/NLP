@@ -7,7 +7,7 @@ You can run the code as:
 python q_topic_em.py <data_directory> <num_topics> <num_iterations>
 The sample data can be found in data/nyt/
 '''
-
+import csv
 import sys, re, collections
 from os import listdir
 from os.path import isfile, join
@@ -111,7 +111,7 @@ def m_step(count_t_z, count_w_z):
 		sumOver_w = 0.0
 		for w in range(vocabSize):
 			theta_z_w[z][w] = count_w_z[w][z]
-			sumOver_z += count_w_z[w][z]
+			sumOver_w += count_w_z[w][z]
 		#normalize
 		theta_z_w[z,:] /= sumOver_w
 	return theta_t_z, theta_z_w
@@ -138,27 +138,36 @@ def EM(fileData, num_iter):
 
 	return theta_t_z, theta_z_w
 
+def writeOutput(writer, row):
+	writer.writerows(row)
 
 # --------------------------------------------------
-if __name__ == '__main__':
-	input_directory = sys.argv[1]
-	fileData = readDirectory(input_directory)
-	num_iter = int(sys.argv[3])
 
-	print "Vocabulary:", vocabSize, "words."
-	print "Running EM with", NUM_TOPICS, "topics."
-	theta_t_z, theta_z_w = EM(fileData, num_iter)
+with open('myOutput.csv', 'wb') as f:
+	writer = csv.writer(f)
+	if __name__ == '__main__':
+		input_directory = sys.argv[1]
+		fileData = readDirectory(input_directory)
+		num_iter = int(sys.argv[3])
+		print "Vocabulary:", vocabSize, "words."
+		print "Running EM with", NUM_TOPICS, "topics."
+		theta_t_z, theta_z_w = EM(fileData, num_iter)
 
-	#Print out topic samples
-	for z in range(NUM_TOPICS):
-		
-		wordProb = [(vocabulary[w], theta_z_w[z][w]) for w in range(vocabSize)]
-		wordProb = sorted(wordProb, key = itemgetter(1), reverse=True)
+		#Print out topic samples
+		for z in range(NUM_TOPICS):
+			
+			wordProb = [(vocabulary[w], theta_z_w[z][w]) for w in range(vocabSize)]
+			wordProb = sorted(wordProb, key = itemgetter(1), reverse=True)
 
-		print "Topic", z+1
-		for j in range(20):
-			print wordProb[j][0], '(%.4f),' % wordProb[j][1], 
-		print '\n'
+			print "Topic", z+1
+			writeOutput(writer, [("TOPIC ", z+1)])
+			words = []
+			for j in range(20):
+				words.append( [wordProb[j][0] + " " + str(wordProb[j][1])])
+				#print wordProb[j][0], '(%.4f),' % wordProb[j][1], 
+			words.append([""])
+			writeOutput( writer, words)
+			#print '\n'
 
 
 
