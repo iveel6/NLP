@@ -39,9 +39,9 @@ def readFile(filename):
 			word2Index[w] = vocabSize
 			vocabulary.append(w)
 			vocabSize += 1
-			tokens.append(word2Index[w])
+		tokens.append(word2Index[w])
 
-			return tokens 
+	return tokens 
 
 ### Reads an entire directory of files
 def readDirectory(dirname):
@@ -54,7 +54,7 @@ def readDirectory(dirname):
 		fileData.append(readFile(join(dirname,f)))
 		NUM_DOCS += 1
 
-		return fileData
+	return fileData
 
 # --------------------------------------------------
 def e_step(fileData, theta_t_z, theta_z_w):
@@ -65,13 +65,13 @@ def e_step(fileData, theta_t_z, theta_z_w):
 	for t in range(NUM_DOCS):
 
 		''' In order to improve efficiency, we will go through each document 
-		only once and calculate the posterior distributions as and when 
-		necessary. So, the variable 'posterior_w_z[w][z]' below is implicitly
-		representing P(z | w, t) for the current document t.
+				only once and calculate the posterior distributions as and when 
+				necessary. So, the variable 'posterior_w_z[w][z]' below is implicitly
+				representing P(z | w, t) for the current document t.
 
-		The use of collections.defaultdict here is to calculate the 
-		posteriors lazily, i.e. only for words that appear in 
-		the current document.
+				The use of collections.defaultdict here is to calculate the 
+				posteriors lazily, i.e. only for words that appear in 
+				the current document.
 		'''
 		posterior_w_z = collections.defaultdict(lambda:np.zeros(NUM_TOPICS))
 
@@ -81,30 +81,30 @@ def e_step(fileData, theta_t_z, theta_z_w):
 			
 			if w not in posterior_w_z:
 				if w not in posterior_w_z:
-					'''TODO: calculate the posterior probability posterior_w_z[w][z]
+				'''TODO: calculate the posterior probability posterior_w_z[w][z]
 					Make sure that the posterior_w_z[w] is a valid probability 
 					distribution over the topics z.
-					'''
-					
+				'''
+				
 
-					for z in range(NUM_TOPICS):
-						'''TODO: Update soft counts count_t_z[t][z] '''
+			for z in range(NUM_TOPICS):
+				'''TODO: Update soft counts count_t_z[t][z] '''
 
-						'''TODO: Update soft counts count_w_z[w][z] '''
+				'''TODO: Update soft counts count_w_z[w][z] '''
 
-						return count_t_z, count_w_z
+	return count_t_z, count_w_z
 
 
 # --------------------------------------------------
 def m_step(count_t_z, count_w_z):
 	'''TODO: Get the max Likelihood estimate of theta_t_z[t][z]
-	Make sure that the theta_t_z[t] is a valid probability 
-	distribution over the topics z.'''
+		 Make sure that the theta_t_z[t] is a valid probability 
+					distribution over the topics z.'''
 	
 
 	'''TODO: Get the max Likelihood estimate of theta_z_w[t][z]
-	Make sure that the theta_z_w[z] is a valid probability 
-	distribution over the words.'''
+	   Make sure that the theta_z_w[z] is a valid probability 
+					distribution over the words.'''
 	
 
 	return theta_t_z, theta_z_w
@@ -120,16 +120,16 @@ def EM(fileData, num_iter):
 	#normalize
 	for t in range(NUM_DOCS):
 		theta_t_z[t] /= np.sum(theta_t_z[t])
-		for z in range(NUM_TOPICS):
-			theta_z_w[z] /= np.sum(theta_z_w[z])
+	for z in range(NUM_TOPICS):
+		theta_z_w[z] /= np.sum(theta_z_w[z])
 
 
-			for i in range(num_iter):
-				print "Iteration", i+1, '...'
-				count_t_z, count_w_z = e_step(fileData, theta_t_z, theta_z_w)
-				theta_t_z, theta_z_w = m_step(count_t_z, count_w_z)
+	for i in range(num_iter):
+		print "Iteration", i+1, '...'
+		count_t_z, count_w_z = e_step(fileData, theta_t_z, theta_z_w)
+		theta_t_z, theta_z_w = m_step(count_t_z, count_w_z)
 
-				return theta_t_z, theta_z_w
+	return theta_t_z, theta_z_w
 
 
 # --------------------------------------------------
@@ -151,7 +151,7 @@ if __name__ == '__main__':
 		print "Topic", z+1
 		for j in range(20):
 			print wordProb[j][0], '(%.4f),' % wordProb[j][1], 
-			print '\n'
+		print '\n'
 
 
 
